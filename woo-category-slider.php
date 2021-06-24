@@ -131,6 +131,7 @@ class Woocommerce_Category_Slider {
 		add_action( 'init', array( $this, 'localization_setup' ) );
 		add_action( 'admin_init', array( $this, 'init_update' ) );
 		add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'plugin_action_links' ) );
+		add_filter( 'plugin_row_meta', array( $this, 'plugin_row_meta' ), 10, 2 );
 
 		if ( $this->is_plugin_compatible() ) {
 			$this->define_constants();
@@ -171,7 +172,7 @@ class Woocommerce_Category_Slider {
 
 			deactivate_plugins( plugin_basename( __FILE__ ) );
 
-			$message = sprintf( __('%s could not be activated The minimum PHP version required for this plugin is %1$s. You are running %2$s.','woo-category-slider-by-pluginever'), $this->plugin_name, $this->min_php, PHP_VERSION );
+			$message = sprintf( __( '%s could not be activated The minimum PHP version required for this plugin is %1$s. You are running %2$s.', 'woo-category-slider-by-pluginever' ), $this->plugin_name, $this->min_php, PHP_VERSION );
 			wp_die( $message );
 		}
 
@@ -232,12 +233,12 @@ class Woocommerce_Category_Slider {
 		$notices = (array) array_merge( $this->notices, get_option( sanitize_key( $this->plugin_name ), [] ) );
 		foreach ( $notices as $notice_key => $notice ) :
 			?>
-			<div class="notice notice-<?php echo sanitize_html_class( $notice['class'] ); ?>">
-				<p><?php echo wp_kses( $notice['message'], array(
+            <div class="notice notice-<?php echo sanitize_html_class( $notice['class'] ); ?>">
+                <p><?php echo wp_kses( $notice['message'], array(
 						'a'      => array( 'href' => array() ),
 						'strong' => array()
 					) ); ?></p>
-			</div>
+            </div>
 			<?php
 			update_option( sanitize_key( $this->plugin_name ), [] );
 		endforeach;
@@ -389,6 +390,28 @@ class Woocommerce_Category_Slider {
 		}
 
 		return self::$instance;
+	}
+
+	/**
+	 * Add plugin docs links in plugin row links
+	 *
+	 * @param mixed $links Links
+	 * @param mixed $file File
+	 *
+	 * @return array
+	 * @since 4.1.1
+	 */
+	public function plugin_row_meta( $links, $file ) {
+		if ( plugin_basename( __FILE__ ) === $file ) {
+
+			$row_meta = array(
+				'docs' => '<a href="' . esc_url( apply_filters( 'wc_category_slider_docs_url', 'https://pluginever.com/docs/woocommerce-category-slider/' ) ) . '" aria-label="' . esc_attr__( 'View documentation', 'woo-category-slider-by-pluginever' ) . '">' . esc_html__( 'Docs', 'woo-category-slider-by-pluginever' ) . '</a>',
+			);
+
+			return array_merge( $links, $row_meta );
+		}
+
+		return $links;
 	}
 }
 
